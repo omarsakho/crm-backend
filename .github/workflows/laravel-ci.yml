@@ -23,7 +23,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'  # ou la version de PHP de votre projet
+          php-version: '8.2'  # ou la version de PHP de votre projet
           extensions: mbstring, intl, pdo, zip
           ini-values: post_max_size=256M, upload_max_filesize=256M
           coverage: none
