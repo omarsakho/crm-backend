@@ -1,0 +1,52 @@
+name: Laravel CI
+
+# Déclenche le workflow sur chaque commit et pull request vers la branche main
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    # Déclare l'environnement sur lequel s'exécute le job
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Récupération du code source
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Étape 2 : Installation de PHP et des extensions nécessaires
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2.0' # ou la version de PHP de votre projet
+          extensions: mbstring, intl, pdo, zip
+          ini-values: post_max_size=256M, upload_max_filesize=256M
+          coverage: none
+
+      # Étape 3 : Installation des dépendances Composer
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      # Étape 4 : Création du fichier .env (optionnel si vous avez un .env.example)
+      - name: Copy .env file
+        run: cp .env.example .env
+
+      # Étape 5 : Générer la clé de l'application Laravel
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # Étape 6 : Exécuter les migrations (sur une base de données SQLite pour les tests)
+      - name: Create SQLite database
+        run: |
+          touch database/database.sqlite
+          php artisan migrate --env=testing --force
+
+      # Étape 7 : Exécution des tests PHPUnit
+      - name: Run Laravel tests
+        run: php artisan test
