@@ -11,7 +11,6 @@ on:
 
 jobs:
   build:
-
     # Déclare l'environnement sur lequel s'exécute le job
     runs-on: ubuntu-latest
 
@@ -24,7 +23,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2.0' # ou la version de PHP de votre projet
+          php-version: '8.1'  # ou la version de PHP de votre projet
           extensions: mbstring, intl, pdo, zip
           ini-values: post_max_size=256M, upload_max_filesize=256M
           coverage: none
@@ -41,12 +40,18 @@ jobs:
       - name: Generate application key
         run: php artisan key:generate
 
-      # Étape 6 : Exécuter les migrations (sur une base de données SQLite pour les tests)
+      # Étape 6 : Configurer le fichier .env pour utiliser SQLite
+      - name: Update .env for SQLite
+        run: |
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
+
+      # Étape 7 : Création de la base de données SQLite et exécution des migrations
       - name: Create SQLite database
         run: |
           touch database/database.sqlite
-          php artisan migrate --env=testing --force
+          php artisan migrate --force
 
-      # Étape 7 : Exécution des tests PHPUnit
+      # Étape 8 : Exécution des tests PHPUnit
       - name: Run Laravel tests
         run: php artisan test
