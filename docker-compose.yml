@@ -3,21 +3,22 @@ version: '3.8'
 services:
   crm-backend:
     build:
-      context: ./crm-backend  # Répertoire contenant le Dockerfile du backend Laravel
+      context: .  # Corrigez ce chemin
+      dockerfile: Dockerfile  # Assurez-vous que le fichier Dockerfile est bien à cet emplacement
     container_name: crm-backend
     ports:
-      - "8000:80"  # Exposer le port 80 du backend Laravel
+      - "8000:80"  # Le port 8000 local vers le port 80 du conteneur Apache
     networks:
       - crm-network
     environment:
       - DB_CONNECTION=mysql
-      - DB_HOST=db  # Utilisez 'db' comme hôte pour MySQL, car c'est le nom du service MySQL
+      - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=crm-backend
       - DB_USERNAME=root
-      - DB_PASSWORD= # Si vous n'avez pas de mot de passe, laissez vide
+      - DB_PASSWORD=
     depends_on:
-      - db  # S'assurer que MySQL est prêt avant le backend
+      - db
 
   db:
     image: mysql:8
@@ -26,31 +27,31 @@ services:
       MYSQL_ROOT_PASSWORD: passer
       MYSQL_DATABASE: crm-backend
     ports:
-      - "3308:3306"  # Exposer le port 3306 de MySQL sur le port 3308 de la machine locale
+      - "3308:3306"
     networks:
       - crm-network
 
   crm-frontend:
     build:
-      context: ./crm-frontend  # Répertoire contenant le Dockerfile du frontend Angular
+      context: ../crm-frontend  # Spécifiez le bon répertoire contenant Dockerfile pour le frontend
     container_name: crm-frontend
     ports:
-      - "4200:4200"  # Le port Angular 4200 exposé
+      - "4200:80"
     networks:
       - crm-network
     depends_on:
-      - crm-backend  # Le frontend dépend du backend
+      - crm-backend
 
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
     user: root
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - "8080:8080"  # Le port 8080 pour accéder à Jenkins
+      - "50000:50000"  # Port pour les agents Jenkins
     volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock  # Permet à Jenkins de contrôler Docker
+      - jenkins_home:/var/jenkins_home  # Persistance des données Jenkins
+      - /var/run/docker.sock:/var/run/docker.sock  # Monture du socket Docker pour permettre à Jenkins d'accéder à Docker
     networks:
       - crm-network
     environment:
